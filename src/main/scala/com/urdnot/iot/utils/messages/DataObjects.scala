@@ -5,19 +5,10 @@ import com.urdnot.iot.utils.actors.QueryOpenWeather._
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 final case class PressureReading(dateTimeStamp: Long, locationId: Long, hga: Int)
-
-// domain model
 final case class Item(name: String, id: Long)
-
-
-
-
 final case class LightSwitch(switch: String)
-
 final case class LightSwitchStatus(status: String)
-
 final case class DoorStatus(status: String)
-
 final case class WeatherPressureReply(pa: Int)
 
 trait DataObjects extends SprayJsonSupport with DefaultJsonProtocol {
@@ -31,8 +22,9 @@ trait DataObjects extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val sysWeatherFormat: RootJsonFormat[SysWeather] = jsonFormat5(SysWeather)
   implicit val openWeatherFormat: RootJsonFormat[OpenWeatherResponse] = jsonFormat13(OpenWeatherResponse)
 
+  implicit val weatherPressureFormat: RootJsonFormat[WeatherPressureReply] = jsonFormat1(WeatherPressureReply)
+
   implicit val LightSwitchFormat: RootJsonFormat[LightSwitch] = jsonFormat1(LightSwitch)
   implicit val LightSwitchStatusFormat: RootJsonFormat[LightSwitchStatus] = jsonFormat1(LightSwitchStatus)
   implicit val DoorStatusFormat: RootJsonFormat[DoorStatus] = jsonFormat1(DoorStatus)
-  implicit val weatherPressureFormat: RootJsonFormat[WeatherPressureReply] = jsonFormat1(WeatherPressureReply)
 }

@@ -57,7 +57,7 @@ object QueryOpenWeather {
                                         base: String,
                                         main: MainWeather,
                                         wind: Wind,
-                                        rain: Rain,
+                                        rain: Option[Rain],
                                         clouds: Clouds,
                                         dt: Long,
                                         sys: SysWeather,
