@@ -5,30 +5,32 @@ organization := "com.urdnot.iot.utils"
 
 name := "HomeApiService"
 
-version := "0.3.1"
+version := "1.0.1"
 
 val scalaMajorVersion = "2.13"
-val scalaMinorVersion = "1"
+val scalaMinorVersion = "2"
 
 scalaVersion := scalaMajorVersion.concat("." + scalaMinorVersion)
 
-
-
-lazy val sparyJsonVersion = "10.1.10"
-lazy val akkaHttpVersion = "10.1.10"
-lazy val akkaPlayVersion = "2.7.3"
-lazy val logbackClassicVersion = "1.2.3"
-lazy val scalaLoggingVersion = "3.9.2"
-lazy val scalaTestVersion = "3.0.8"
-
-libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-http-spray-json" % sparyJsonVersion,
-  "com.typesafe.akka" %%"akka-http" % akkaHttpVersion,
-  "com.typesafe.play" %% "play" % akkaPlayVersion,
-  "ch.qos.logback" % "logback-classic" % logbackClassicVersion,
-  "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
-  "org.scalatest" %% "scalatest" %  scalaTestVersion % "test"
-)
+libraryDependencies ++= {
+  val sparyJsonVersion = "10.1.12"
+  val akkaHttpVersion = "10.1.12"
+  val logbackClassicVersion = "1.2.3"
+  val scalatestVersion = "3.1.1"
+  val akkaVersion = "2.6.5"
+  val scalaLoggingVersion = "3.9.2"
+  Seq(
+    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+    "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
+    "com.typesafe.akka" %% "akka-http-spray-json" % sparyJsonVersion,
+    "ch.qos.logback" % "logback-classic" % logbackClassicVersion,
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % Test,
+    "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
+    "org.scalatest" %% "scalatest" % scalatestVersion % Test,
+    "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion
+  )
+}
 
 enablePlugins(DockerPlugin)
 
@@ -59,12 +61,16 @@ mappings in Docker += file("src/main/resources/logback.xml") -> "opt/docker/logb
 dockerExposedPorts := Seq(8081)
 
 dockerCommands := Seq(
-  Cmd("FROM", "openjdk:13-alpine"),
+  Cmd("FROM", "openjdk:11-jdk-slim"),
   Cmd("LABEL", s"""MAINTAINER="Jeffrey Sewell""""),
   Cmd("COPY", s"opt/docker/${assemblyJarName.value}", s"/opt/docker/${assemblyJarName.value}"),
   Cmd("COPY", "opt/docker/application.conf", "/var/application.conf"),
   Cmd("COPY", "opt/docker/logback.xml", "/var/logback.xml"),
-  //Cmd("EXPOSE", "8081"),
   Cmd("ENV", "CLASSPATH=/opt/docker/application.conf:/opt/docker/logback.xml"),
-  Cmd("ENTRYPOINT", s"java -cp /opt/docker/${assemblyJarName.value} com.urdnot.iot.utils.HomeApiService")
+  Cmd("ENTRYPOINT", s"java -cp /opt/docker/${assemblyJarName.value} com.urdnot.iot.api.HomeApiService")
 )
+// sbt clean
+// sbt assembly
+// sbt docker:publishLocal
+// docker image tag homeapiservice:latest intel-server-03:5000/homeapiservice
+// docker image push intel-server-03:5000/homeapiservice

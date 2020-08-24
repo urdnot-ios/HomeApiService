@@ -1,15 +1,9 @@
-package com.urdnot.iot.utils.messages
+package com.urdnot.iot.api.messages
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.urdnot.iot.utils.actors.QueryOpenWeather._
+import com.urdnot.iot.api.actors.Doors.{DoorStatus, DoorStatusResponse}
+import com.urdnot.iot.api.actors.QueryOpenWeather.{Clouds, Coord, CurrentWeatherData, MainWeather, OpenWeatherResponse, Rain, SysWeather, WeatherItems, WeatherPressureReply, WeatherPressureRequest, Wind}
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
-
-final case class PressureReading(dateTimeStamp: Long, locationId: Long, hga: Int)
-final case class Item(name: String, id: Long)
-final case class LightSwitch(switch: String)
-final case class LightSwitchStatus(status: String)
-final case class DoorStatus(status: String)
-final case class WeatherPressureReply(pa: Int)
 
 trait DataObjects extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val currentWeatherRequestFormat:RootJsonFormat[CurrentWeatherData] = jsonFormat1(CurrentWeatherData)
@@ -22,9 +16,10 @@ trait DataObjects extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val sysWeatherFormat: RootJsonFormat[SysWeather] = jsonFormat5(SysWeather)
   implicit val openWeatherFormat: RootJsonFormat[OpenWeatherResponse] = jsonFormat13(OpenWeatherResponse)
 
-  implicit val weatherPressureFormat: RootJsonFormat[WeatherPressureReply] = jsonFormat1(WeatherPressureReply)
+  implicit val weatherPressureRequestFormat: RootJsonFormat[WeatherPressureRequest] = jsonFormat1(WeatherPressureRequest)
+  implicit val weatherPressureReplyFormat: RootJsonFormat[WeatherPressureReply] = jsonFormat1(WeatherPressureReply)
 
-  implicit val LightSwitchFormat: RootJsonFormat[LightSwitch] = jsonFormat1(LightSwitch)
-  implicit val LightSwitchStatusFormat: RootJsonFormat[LightSwitchStatus] = jsonFormat1(LightSwitchStatus)
+
   implicit val DoorStatusFormat: RootJsonFormat[DoorStatus] = jsonFormat1(DoorStatus)
+  implicit val DoorStatusReply: RootJsonFormat[DoorStatusResponse] = jsonFormat1(DoorStatusResponse)
 }

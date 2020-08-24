@@ -1,17 +1,19 @@
-package com.urdnot.iot.utils.actors
+package com.urdnot.iot.api.actors
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.Uri.Query
 import akka.http.scaladsl.model._
-import com.urdnot.iot.utils.HomeApiService.config
-
+import com.urdnot.iot.api.HomeApiService.config
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 object QueryOpenWeather {
   implicit val system: ActorSystem = ActorSystem("home-api-service")
-//  implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+
+  final case class PressureReading(dateTimeStamp: Long, locationId: Long, hga: Int)
+  final case class WeatherPressureReply(pa: Int)
+  final case class WeatherPressureRequest(request: String)
 
   case class CurrentSeaLevelPressure()
   // { "request_type": "currentPressure" }
@@ -27,12 +29,30 @@ object QueryOpenWeather {
 
   //  "weather":[{"id":803,"main":"Clouds","description":"broken clouds","icon":"04n"}]
 
-  final case class MainWeather(temp: Double, feels_like: Double, temp_min: Double, temp_max: Double, pressure: Int, humidity: Int)
-//    (temp* − 273.15) × 1.8 + 32 = 63.356°F
+  /*
+  Added an auxiliary constructor to convert from K to F
+   */
+  final case class MainWeather(
+    var temp: Double,
+    var feels_like: Double,
+    var temp_min: Double,
+    var temp_max: Double,
+    pressure: Int,
+    humidity: Int
+  ){
+    this.temp = this.kelvinToF(temp)
+    this.feels_like = this.kelvinToF(feels_like)
+    this.temp_min = this.kelvinToF(temp_min)
+    this.temp_max = this.kelvinToF(temp_max)
+
+    def kelvinToF(kelvin: Double): Double = {
+      Math.round(((kelvin - 273.15) * 1.8 + 32) * 10000.00) / 10000.00
+    }
+  }
   //  "main":
   //    {"temp":285.36,"feels_like":283.32,"temp_min":284.26,"temp_max":285.93,"pressure":1018,"humidity":78}
 
-  final case class Wind(speed: Double, deg: Option[Int])
+  final case class Wind(speed: Option[Double], deg: Option[Int])
 
   //  "wind":
   //    {"speed":2.42,"deg":119}
@@ -89,14 +109,13 @@ object QueryOpenWeather {
     Http().singleRequest(
       HttpRequest(
         method = HttpMethods.GET,
-        //uri = Uri("https://api.openweathermap.org/data/2.5/weather")
-        // https://api.openweathermap.org/data/2.5/weather?lat=47&lon=-122&APPID=b9f91a83c2b3569c285d01650bdc9f49
+//        https://openweathermap.org/current
         uri = Uri(config.getString("akka.uri.openWeather"))
           .withQuery(
             Query(
               "lat" -> config.getString("akka.OpenWeather.lat"),
               "lon" -> config.getString("akka.OpenWeather.lon"),
-              "APPID" -> config.getString("akka.OpenWeather.APPID")
+              "appid" -> config.getString("akka.OpenWeather.APPID")
             )
           ),
         headers = Nil,
@@ -105,35 +124,3 @@ object QueryOpenWeather {
     )
   }
 }
-
-//class QueryOpenWeather extends Actor with ActorLogging with DataObjects {
-//
-//  implicit val system = ActorSystem()
-//  implicit val executionContext: ExecutionContextExecutor = system.dispatcher
-//  implicit val materializer: ActorMaterializer = ActorMaterializer()
-//
-//  def receive: PartialFunction[Any, Unit] = {
-//    case CurrentSeaLevelPressure => log.info("reqeust for pressure")
-//      sender() ! queryOpenWeather()
-//    case _ => log.info("Unknown request")
-//      sender() ! "Unknown reqeust"
-//  }
-//  def queryOpenWeather(): HttpRequest = {
-//    //uri = Uri("https://api.openweathermap.org/data/2.5/weather")
-//    //https://api.openweathermap.org/data/2.5/weather?lat=47&lon=-122&APPID=b9f91a83c2b3569c285d01650bdc9f49
-//    val method: HttpMethod = HttpMethods.GET
-//    val uri: Uri = Uri(config.getString("akka.uri.openWeather"))
-//      .withQuery(
-//        Query(
-//          "lat" -> config.getString("akka.OpenWeather.lat"),
-//          "lon" -> config.getString("akka.OpenWeather.lon"),
-//          "APPID" -> config.getString("akka.OpenWeather.APPID")
-//        )
-//      )
-//    HttpRequest(
-//      method = method,
-//      uri = uri,
-//      entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, ""))
-//
-//  }
-//}
